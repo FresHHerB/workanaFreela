@@ -25,7 +25,7 @@ RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
     echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
     echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
 
-# Copy frontend source code explicitly (only files that exist)
+# Copy frontend source code and config files
 COPY frontend/src/ ./src/
 COPY frontend/index.html ./
 COPY frontend/vite.config.ts ./
@@ -35,7 +35,7 @@ COPY frontend/tsconfig.node.json ./
 COPY frontend/tailwind.config.js ./
 COPY frontend/postcss.config.js ./
 
-# Build frontend for production
+# Build frontend for production (ensuring env vars are embedded)
 RUN npm run build
 
 # Main application stage
