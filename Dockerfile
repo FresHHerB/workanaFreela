@@ -18,13 +18,27 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 
 # Install ALL dependencies (including devDependencies for build)
-RUN npm ci
+RUN npm ci --verbose
 
 # Copy frontend source code
 COPY frontend/ ./
 
-# Build frontend for production
-RUN npm run build
+# Debug: Show environment variables
+RUN echo "Build-time environment variables:" && \
+    echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" && \
+    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" && \
+    echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL"
+
+# Create .env file with build-time variables (backup)
+RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
+    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
+    echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
+
+# Show .env content for debugging
+RUN echo "Created .env file:" && cat .env
+
+# Build frontend for production with verbose output
+RUN npm run build --verbose
 
 # Main application stage
 FROM python:3.11-slim AS production

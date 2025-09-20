@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ProjetoFreela } from '../types';
 import { fetchProjetos } from '../lib/supabase';
 import { parseRelativeTime } from '../utils/dateUtils';
-import { API_ENDPOINTS, REFRESH_INTERVALS } from '../config/constants';
+import { REFRESH_INTERVALS } from '../config/constants';
 
 export const useProjetos = () => {
   const [projetos, setProjetos] = useState<ProjetoFreela[]>([]);
