@@ -1,43 +1,35 @@
 # Multi-stage build for production deployment
 FROM node:18-alpine AS frontend-builder
 
-# Accept build arguments from EasyPanel
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-ARG VITE_WEBHOOK_URL
-
 # Set working directory for frontend build
 WORKDIR /app
 
-# Copy frontend package files first for better Docker layer caching
+# Set build-time environment variables first (following dash-workana pattern)
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_WEBHOOK_URL
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
+
+# Copy package files first for better Docker layer caching
 COPY package*.json ./
 
 # Install ALL dependencies (including devDependencies for build)
 RUN npm ci
 
-# Set environment variables for Vite build BEFORE copying files
-ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
-ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
-ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
+# Copy all source code
+COPY . .
 
-# Create .env file for Vite build (with all required variables)
-RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
-    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
-    echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
-
-# Copy frontend source code and config files (now from root)
-COPY src/ ./src/
-COPY public/ ./public/
-COPY index.html ./
-COPY vite.config.ts ./
-COPY tsconfig.json ./
-COPY tsconfig.app.json ./
-COPY tsconfig.node.json ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
+# Debug: Print environment variables (following dash-workana pattern)
+RUN echo "Building with VITE_SUPABASE_URL: $VITE_SUPABASE_URL"
+RUN echo "Building with VITE_WEBHOOK_URL: $VITE_WEBHOOK_URL"
 
 # Build frontend for production (ensuring env vars are embedded)
 RUN npm run build
+
+# Debug: List built files (following dash-workana pattern)
+RUN ls -la /app/dist/
 
 # Main application stage
 FROM python:3.11-slim AS production
