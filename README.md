@@ -40,15 +40,11 @@ workanaFreela/
 Copie o arquivo `.env.example` para `.env` e configure:
 
 ```env
-# Credenciais Workana (obrigatório)
+# Backend - Workana scraping (obrigatório)
 WORKANA_EMAIL=seu_email@exemplo.com
 WORKANA_PASSWORD=sua_senha
 
-# Configuração Supabase (obrigatório)
-SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_ANON_KEY=sua_chave_anonima
-
-# Frontend (obrigatório - mesmos valores acima)
+# Frontend - Supabase database (obrigatório)
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua_chave_anonima
 
@@ -115,14 +111,12 @@ docker-compose up --build
    - URL: `https://github.com/FresHHerB/workanaFreela`
    - Branch: `main`
 
-2. **Configure as variáveis de ambiente no EasyPanel**:
+2. **Configure apenas 4 variáveis no EasyPanel**:
    - `WORKANA_EMAIL=seu_email@workana.com`
    - `WORKANA_PASSWORD=sua_senha`
-   - `SUPABASE_URL=https://seu-projeto.supabase.co`
-   - `SUPABASE_ANON_KEY=sua_chave_anonima`
-   - `VITE_SUPABASE_URL=https://seu-projeto.supabase.co` (mesmo valor acima)
-   - `VITE_SUPABASE_ANON_KEY=sua_chave_anonima` (mesmo valor acima)
-   - `PORT=8000` (opcional)
+   - `VITE_SUPABASE_URL=https://seu-projeto.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY=sua_chave_anonima`
+   - `PORT=8000` (opcional, padrão é 8000)
 
 3. **Configure os domínios**:
    - **Dashboard**: `sua-aplicacao.exemplo.com` (porta 8000)
@@ -136,12 +130,18 @@ docker-compose up --build
 
 ## Arquitetura
 
-A aplicação usa uma arquitetura híbrida:
+A aplicação usa uma arquitetura simples e eficiente:
 
-1. **Backend FastAPI**: Gerencia o scraping e serve a API
-2. **Frontend React**: Interface do usuário para visualização
-3. **Roteamento**: FastAPI serve tanto a API quanto os arquivos estáticos
-4. **Integração**: Frontend faz chamadas para `/api/scrape` internamente
+1. **Backend FastAPI**: Realiza scraping da Workana e expõe API REST
+2. **Frontend React**: Dashboard para visualização dos dados do Supabase
+3. **Separação clara**: Backend não acessa Supabase, Frontend não faz scraping
+4. **Fluxo**: Backend scrapes → API response → Frontend lê do Supabase
+
+### Fluxo de Dados
+```
+Workana → Backend (scraping) → API /scrape → Resposta JSON
+Supabase ← Frontend (leitura) ← Dashboard React
+```
 
 ## Monitoramento
 

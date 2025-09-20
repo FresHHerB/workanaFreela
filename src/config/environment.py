@@ -8,13 +8,9 @@ from typing import Optional
 class Config:
     """Application configuration class."""
 
-    # Workana credentials
+    # Workana credentials (required for scraping)
     WORKANA_EMAIL: Optional[str] = os.getenv("WORKANA_EMAIL")
     WORKANA_PASSWORD: Optional[str] = os.getenv("WORKANA_PASSWORD")
-
-    # Supabase configuration
-    SUPABASE_URL: Optional[str] = os.getenv("SUPABASE_URL")
-    SUPABASE_ANON_KEY: Optional[str] = os.getenv("SUPABASE_ANON_KEY")
 
     # Server configuration
     PORT: int = int(os.getenv("PORT", 8000))
