@@ -30,11 +30,20 @@ export const useProjetos = () => {
   const updateData = async () => {
     setUpdating(true);
     try {
-      const webhookUrl = API_ENDPOINTS.SCRAPE;
+      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL;
+
+      if (!webhookUrl || webhookUrl.trim() === '') {
+        console.warn('Webhook URL não configurada, carregando apenas dados do Supabase');
+        // Se não há webhook, apenas recarrega os dados do Supabase
+        const data = await fetchProjetos();
+        setProjetos(data);
+        setError(null);
+        return;
+      }
 
       try {
         // Dispara o webhook para atualizar os dados no backend
-        const response = await fetch(webhookUrl, {
+        const response = await fetch(webhookUrl.trim(), {
           method: 'GET',
           mode: 'cors',
           headers: {
@@ -44,8 +53,8 @@ export const useProjetos = () => {
         });
 
         if (response.ok) {
-          const result = await response.json();
-          if (result.status === 'success') {
+          const result = await response.text();
+          if (result === 'sucess' || result.includes('success')) {
             // Aguarda um pouco para garantir que o backend terminou de processar
             await new Promise(resolve => setTimeout(resolve, REFRESH_INTERVALS.SCRAPE_DELAY));
 

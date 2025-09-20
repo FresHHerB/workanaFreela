@@ -48,8 +48,8 @@ WORKANA_PASSWORD=sua_senha
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua_chave_anonima
 
-# Webhook integration (opcional)
-WEBHOOK_URL=https://seu-dominio.com/api/scrape
+# Webhook integration (obrigatório para botão "Atualizar Dados")
+VITE_WEBHOOK_URL=https://seu-n8n-webhook.com/webhook/update_freela
 
 # Servidor (opcional)
 PORT=8000
@@ -121,9 +121,9 @@ docker-compose up --build
    - `WORKANA_PASSWORD=sua_senha`
    - `VITE_SUPABASE_URL=https://seu-projeto.supabase.co`
    - `VITE_SUPABASE_ANON_KEY=sua_chave_anonima`
+   - `VITE_WEBHOOK_URL=https://seu-n8n-webhook.com/webhook/update_freela`
 
    **Opcionais:**
-   - `WEBHOOK_URL=https://seu-dominio.com/api/scrape` (para integração n8n)
    - `PORT=8000` (padrão é 8000)
 
 3. **Configure os domínios**:
