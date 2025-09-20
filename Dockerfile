@@ -10,7 +10,7 @@ ARG VITE_WEBHOOK_URL
 WORKDIR /app
 
 # Copy frontend package files first for better Docker layer caching
-COPY frontend/package*.json ./
+COPY package*.json ./
 
 # Install ALL dependencies (including devDependencies for build)
 RUN npm ci
@@ -25,16 +25,16 @@ RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
     echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
     echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
 
-# Copy frontend source code and config files
-COPY frontend/src/ ./src/
-COPY frontend/public/ ./public/
-COPY frontend/index.html ./
-COPY frontend/vite.config.ts ./
-COPY frontend/tsconfig.json ./
-COPY frontend/tsconfig.app.json ./
-COPY frontend/tsconfig.node.json ./
-COPY frontend/tailwind.config.js ./
-COPY frontend/postcss.config.js ./
+# Copy frontend source code and config files (now from root)
+COPY src/ ./src/
+COPY public/ ./public/
+COPY index.html ./
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tsconfig.app.json ./
+COPY tsconfig.node.json ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
 
 # Build frontend for production (ensuring env vars are embedded)
 RUN npm run build
@@ -112,8 +112,8 @@ RUN echo "WORKANA_EMAIL=$WORKANA_EMAIL" > .env && \
 COPY src/ ./src/
 COPY main.py .
 
-# Copy built frontend from builder stage
-COPY --from=frontend-builder /app/dist ./frontend/dist
+# Copy built frontend from builder stage (now to /app/dist)
+COPY --from=frontend-builder /app/dist ./dist
 
 # Create non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser && mkdir -p /home/appuser && chown appuser:appuser /home/appuser

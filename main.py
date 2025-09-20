@@ -56,7 +56,7 @@ app.add_middleware(
 app.include_router(api_router)
 
 # Frontend serving
-frontend_dir = Path(__file__).parent / "frontend" / "dist"
+frontend_dir = Path(__file__).parent / "dist"
 logger.info(f"Looking for frontend at: {frontend_dir}")
 logger.info(f"Frontend directory exists: {frontend_dir.exists()}")
 
