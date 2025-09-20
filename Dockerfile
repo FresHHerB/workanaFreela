@@ -7,8 +7,8 @@ WORKDIR /app/frontend
 # Copy package files first for better Docker layer caching
 COPY frontend/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
 
 # Copy frontend source code
 COPY frontend/ ./
@@ -17,7 +17,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Main application stage
-FROM python:3.11-slim as production
+FROM python:3.11-slim AS production
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
