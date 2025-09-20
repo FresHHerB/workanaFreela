@@ -41,12 +41,15 @@ RUN npm run build
 # Main application stage
 FROM python:3.11-slim AS production
 
-# Accept build arguments for backend environment variables
+# Accept build arguments for all environment variables
 ARG WORKANA_EMAIL
 ARG WORKANA_PASSWORD
 ARG PORT=8000
 ARG HOST=0.0.0.0
 ARG DEBUG=false
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_WEBHOOK_URL
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
@@ -56,6 +59,9 @@ ENV WORKANA_PASSWORD=$WORKANA_PASSWORD
 ENV PORT=$PORT
 ENV HOST=$HOST
 ENV DEBUG=$DEBUG
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
 
 # Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y \
@@ -91,12 +97,15 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Create .env file for backend
+# Create .env file for backend with all environment variables
 RUN echo "WORKANA_EMAIL=$WORKANA_EMAIL" > .env && \
     echo "WORKANA_PASSWORD=$WORKANA_PASSWORD" >> .env && \
     echo "PORT=$PORT" >> .env && \
     echo "HOST=$HOST" >> .env && \
-    echo "DEBUG=$DEBUG" >> .env
+    echo "DEBUG=$DEBUG" >> .env && \
+    echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" >> .env && \
+    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
+    echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
 
 # Copy application code
 COPY src/ ./src/
@@ -106,7 +115,7 @@ COPY main.py .
 COPY --from=frontend-builder /app/dist ./frontend/dist
 
 # Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r appuser && useradd -r -g appuser appuser && mkdir -p /home/appuser && chown appuser:appuser /home/appuser
 RUN chown -R appuser:appuser /app
 USER appuser
 
