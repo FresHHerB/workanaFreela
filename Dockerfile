@@ -15,17 +15,21 @@ COPY frontend/package*.json ./
 # Install ALL dependencies (including devDependencies for build)
 RUN npm ci
 
-# Copy ALL frontend source code - exactly like the working Dockerfile
-COPY frontend/ ./
-
-# Set environment variables for Vite build AFTER copying files
+# Set environment variables for Vite build BEFORE copying files
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
 
-# Debug: Show what files we have
-RUN echo "Files in /app/src/lib:" && ls -la src/lib/ || echo "lib directory not found"
-RUN echo "Files in /app/src:" && ls -la src/
+# Copy frontend source code explicitly
+COPY frontend/src/ ./src/
+COPY frontend/public/ ./public/
+COPY frontend/index.html ./
+COPY frontend/vite.config.ts ./
+COPY frontend/tsconfig.json ./
+COPY frontend/tsconfig.app.json ./
+COPY frontend/tsconfig.node.json ./
+COPY frontend/tailwind.config.js ./
+COPY frontend/postcss.config.js ./
 
 # Build frontend for production
 RUN npm run build
