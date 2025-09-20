@@ -1,16 +1,27 @@
-# Multi-stage build for the unified application
+# Multi-stage build for production deployment
 FROM node:18-alpine AS frontend-builder
 
-# Build frontend
+# Set working directory for frontend build
 WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci
 
+# Copy package files first for better Docker layer caching
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy frontend source code
 COPY frontend/ ./
+
+# Build frontend for production
 RUN npm run build
 
 # Main application stage
-FROM python:3.11-slim
+FROM python:3.11-slim as production
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
 # Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y \
@@ -35,6 +46,7 @@ RUN apt-get update && apt-get install -y \
     libxss1 \
     libxtst6 \
     xdg-utils \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -42,20 +54,30 @@ WORKDIR /app
 
 # Copy Python requirements and install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright browsers
 RUN playwright install chromium
 
 # Copy application code
+COPY src/ ./src/
 COPY main.py .
-COPY .env .
 
-# Copy built frontend
+# Copy built frontend from builder stage
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN chown -R appuser:appuser /app
+USER appuser
 
 # Expose port
 EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:8000/api/health')"
 
 # Command to run the application
 CMD ["python", "main.py"]

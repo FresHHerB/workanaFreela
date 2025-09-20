@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ProjetoFreela } from '../types';
 import { fetchProjetos } from '../lib/supabase';
 import { parseRelativeTime } from '../utils/dateUtils';
+import { API_ENDPOINTS, REFRESH_INTERVALS } from '../config/constants';
 
 export const useProjetos = () => {
   const [projetos, setProjetos] = useState<ProjetoFreela[]>([]);
@@ -29,7 +30,7 @@ export const useProjetos = () => {
   const updateData = async () => {
     setUpdating(true);
     try {
-      const webhookUrl = '/api/scrape';
+      const webhookUrl = API_ENDPOINTS.SCRAPE;
 
       try {
         // Dispara o webhook para atualizar os dados no backend
@@ -46,7 +47,7 @@ export const useProjetos = () => {
           const result = await response.json();
           if (result.status === 'success') {
             // Aguarda um pouco para garantir que o backend terminou de processar
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, REFRESH_INTERVALS.SCRAPE_DELAY));
 
             // Recarrega os dados do Supabase
             const data = await fetchProjetos();
@@ -55,7 +56,7 @@ export const useProjetos = () => {
           } else {
             console.warn('Resposta do webhook:', result);
             // Mesmo com resposta inesperada, tenta recarregar os dados
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, REFRESH_INTERVALS.SCRAPE_DELAY));
             const data = await fetchProjetos();
             setProjetos(data);
             setError(null);

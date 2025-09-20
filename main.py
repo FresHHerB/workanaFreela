@@ -1,19 +1,43 @@
-import asyncio
-import json
+"""
+Workana Scraper and Dashboard Application
+Main entry point for the unified FastAPI application.
+"""
 import logging
-import os
-from datetime import datetime
-from playwright.async_api import async_playwright, TimeoutError
-from fastapi import FastAPI, HTTPException
+import uvicorn
+from pathlib import Path
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pathlib import Path
 
-logging.basicConfig(level=logging.INFO)
+from src.config import config
+from src.api import api_router
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO if not config.DEBUG else logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Workana Scraper API")
+# Validate configuration
+try:
+    config.validate()
+    logger.info("Configuration validated successfully")
+except ValueError as e:
+    logger.error(f"Configuration validation failed: {e}")
+    raise
+
+# Create FastAPI application
+app = FastAPI(
+    title="Workana Scraper & Dashboard",
+    description="Unified application for Workana project scraping and dashboard visualization",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+)
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,122 +46,47 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# Environment variables
-EMAIL = os.getenv("WORKANA_EMAIL")
-PASSWORD = os.getenv("WORKANA_PASSWORD")
+# Include API routes
+app.include_router(api_router)
 
-async def scrape_and_return():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=['--no-sandbox', '--disable-dev-shm-usage']
-        )
-        page = await browser.new_page()
-        try:
-            await page.goto('https://www.workana.com/login', wait_until='networkidle')
-            try:
-                await page.click('#onetrust-accept-btn-handler', timeout=5000)
-                await asyncio.sleep(1)
-            except TimeoutError:
-                pass
-
-            await page.type('#email-input', EMAIL)
-            await page.type('#password-input', PASSWORD)
-            await page.click('button[name="submit"]')
-            await page.wait_for_selector("a:has-text('Meus projetos')", timeout=20000)
-
-            target_url = 'https://www.workana.com/jobs?language=en%2Cpt&query=automa%C3%A7%C3%A3o'
-            await page.goto(target_url, wait_until='domcontentloaded')
-            await page.wait_for_selector('#projects .project-item', timeout=15000)
-
-            projects_data = await page.evaluate('''
-                async () => {
-                    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-                    const projects = document.querySelectorAll('.project-item.js-project');
-                    for (const project of projects) {
-                        const expandLink = project.querySelector('.html-desc a.link');
-                        if (expandLink) {
-                            expandLink.click();
-                            await sleep(300);
-                        }
-                    }
-                    await sleep(2000);
-                    return Array.from(document.querySelectorAll('.project-item.js-project')).map(p => {
-                        const title_element = p.querySelector('.project-title a');
-                        const bids_element = p.querySelector('.bids');
-                        const date_element = p.querySelector('.date');
-                        const budget_element = p.querySelector('.budget .values span');
-                        const contact_element = p.querySelector('span.bid');
-                        const countryElement = p.querySelector('.country-name a');
-                        const is_contacted = contact_element ? contact_element.innerText.includes('Em contato') : false;
-
-                        let description = 'N/A';
-                        const desc_element = p.querySelector('.html-desc.project-details');
-                        if (desc_element) {
-                            const clonedDesc = desc_element.cloneNode(true);
-                            clonedDesc.querySelectorAll('a.link').forEach(link => link.remove());
-                            description = clonedDesc.innerText.replace(/\\s+/g, ' ').trim();
-                        }
-
-                        return {
-                            title: title_element ? title_element.innerText.trim() : null,
-                            url: title_element ? title_element.href : null,
-                            bids: bids_element ? bids_element.innerText.replace('Propostas:', '').trim() : null,
-                            published_date: date_element ? date_element.innerText.replace('Publicado:', '').trim() : null,
-                            budget: budget_element ? budget_element.innerText.trim() : null,
-                            contacted: is_contacted,
-                            description: description,
-                            country: countryElement ? countryElement.innerText.trim() : 'N/A'
-                        };
-                    });
-                }
-            ''')
-
-            return {
-                "status": "success",
-                "data": projects_data,
-                "total_projects": len(projects_data)
-            }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-        finally:
-            await browser.close()
-
-# API Routes
-@app.get("/api/health")
-async def health():
-    return {"status": "healthy"}
-
-@app.get("/api/scrape")
-async def scrape_endpoint():
-    result = await scrape_and_return()
-    if result["status"] == "success":
-        return result
-    else:
-        raise HTTPException(status_code=500, detail=result.get("message"))
-
-# Static files and frontend serving
+# Frontend serving
 frontend_dir = Path(__file__).parent / "frontend" / "dist"
 
 if frontend_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_dir / "assets")), name="static")
+    # Mount static assets
+    app.mount("/assets", StaticFiles(directory=str(frontend_dir / "assets")), name="assets")
 
     @app.get("/")
     async def serve_frontend():
+        """Serve the React frontend."""
         return FileResponse(str(frontend_dir / "index.html"))
 
     @app.get("/{path:path}")
     async def serve_frontend_files(path: str):
+        """Serve frontend files or fallback to index.html for SPA routing."""
         file_path = frontend_dir / path
         if file_path.exists() and file_path.is_file():
             return FileResponse(str(file_path))
+        # Fallback to index.html for SPA routing
         return FileResponse(str(frontend_dir / "index.html"))
+
 else:
+    logger.warning("Frontend dist directory not found. Only API endpoints will be available.")
+
     @app.get("/")
     async def root():
-        return {"message": "Workana Scraper API", "status": "running", "note": "Frontend not built yet"}
+        """Root endpoint when frontend is not available."""
+        return {
+            "message": "Workana Scraper API",
+            "status": "running",
+            "note": "Frontend not built yet. Visit /api/docs for API documentation."
+        }
 
 if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    logger.info(f"Starting Workana Scraper application on {config.HOST}:{config.PORT}")
+    uvicorn.run(
+        "main:app",
+        host=config.HOST,
+        port=config.PORT,
+        reload=config.DEBUG
+    )
