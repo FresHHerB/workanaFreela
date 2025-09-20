@@ -20,7 +20,7 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
 
-# Create .env file for Vite build
+# Create .env file for Vite build (with all required variables)
 RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
     echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
     echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
