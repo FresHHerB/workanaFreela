@@ -1,14 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import type { ProjetoFreela } from '../types';
 
-// Configurações do Supabase via variáveis de ambiente
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Configurações do Supabase - TEMPORÁRIO: hardcoded para testar
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ueblczslrbntowjacqgq.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlYmxjenNscmJudG93amFjcWdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4MDMwODgsImV4cCI6MjA2NzM3OTA4OH0.LH6E3vq3Qtrx8_9A9WvhJRTi6ANsFtcoFS4wwjGY4zk';
 
 console.log('Supabase Config Debug:', {
   url: supabaseUrl ? 'SET' : 'MISSING',
   key: supabaseAnonKey ? 'SET' : 'MISSING',
-  fullUrl: supabaseUrl
+  fullUrl: supabaseUrl,
+  usingFallback: !import.meta.env.VITE_SUPABASE_URL
 });
 
 if (!supabaseUrl || !supabaseAnonKey) {

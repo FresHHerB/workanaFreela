@@ -30,7 +30,7 @@ export const useProjetos = () => {
   const updateData = async () => {
     setUpdating(true);
     try {
-      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL;
+      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL || 'https://n8n-n8n.gpqg9h.easypanel.host/webhook/update_freela';
 
       if (!webhookUrl || webhookUrl.trim() === '') {
         console.warn('Webhook URL não configurada, carregando apenas dados do Supabase');

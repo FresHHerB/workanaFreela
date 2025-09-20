@@ -3,7 +3,10 @@
     "allow": [
       "Read(//d/code/freela/geradorRoteiroAudio/github/dash-yt/**)",
       "WebFetch(domain:n8n-workana.gpqg9h.easypanel.host)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
