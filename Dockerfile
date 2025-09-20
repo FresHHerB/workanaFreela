@@ -91,8 +91,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers
-RUN playwright install chromium
+# Install Playwright browsers with dependencies
+RUN playwright install --with-deps chromium
 
 # Create .env file for backend
 RUN echo "WORKANA_EMAIL=$WORKANA_EMAIL" > .env && \
