@@ -6,39 +6,29 @@ ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 ARG VITE_WEBHOOK_URL
 
-# Set environment variables for Vite build
+# Set working directory for frontend build
+WORKDIR /app
+
+# Copy frontend package files first for better Docker layer caching
+COPY frontend/package*.json ./
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy ALL frontend source code - exactly like the working Dockerfile
+COPY frontend/ ./
+
+# Set environment variables for Vite build AFTER copying files
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
 
-# Set working directory for frontend build
-WORKDIR /app/frontend
+# Debug: Show what files we have
+RUN echo "Files in /app/src/lib:" && ls -la src/lib/ || echo "lib directory not found"
+RUN echo "Files in /app/src:" && ls -la src/
 
-# Copy package files first for better Docker layer caching
-COPY frontend/package*.json ./
-
-# Install ALL dependencies (including devDependencies for build)
-RUN npm ci --verbose
-
-# Copy frontend source code
-COPY frontend/ ./
-
-# Debug: Show environment variables
-RUN echo "Build-time environment variables:" && \
-    echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" && \
-    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" && \
-    echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL"
-
-# Create .env file with build-time variables (backup)
-RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
-    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
-    echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
-
-# Show .env content for debugging
-RUN echo "Created .env file:" && cat .env
-
-# Build frontend for production with verbose output
-RUN npm run build --verbose
+# Build frontend for production
+RUN npm run build
 
 # Main application stage
 FROM python:3.11-slim AS production
@@ -89,7 +79,7 @@ COPY src/ ./src/
 COPY main.py .
 
 # Copy built frontend from builder stage
-COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+COPY --from=frontend-builder /app/dist ./frontend/dist
 
 # Create non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
