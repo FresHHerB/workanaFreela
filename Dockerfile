@@ -91,9 +91,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers
-RUN playwright install chromium
-
 # Create .env file for backend
 RUN echo "WORKANA_EMAIL=$WORKANA_EMAIL" > .env && \
     echo "WORKANA_PASSWORD=$WORKANA_PASSWORD" >> .env && \
@@ -112,6 +109,9 @@ COPY --from=frontend-builder /app/dist ./frontend/dist
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 RUN chown -R appuser:appuser /app
 USER appuser
+
+# Install Playwright browsers as appuser
+RUN playwright install chromium
 
 # Expose port
 EXPOSE 8000
