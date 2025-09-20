@@ -41,9 +41,21 @@ RUN npm run build
 # Main application stage
 FROM python:3.11-slim AS production
 
+# Accept build arguments for backend environment variables
+ARG WORKANA_EMAIL
+ARG WORKANA_PASSWORD
+ARG PORT=8000
+ARG HOST=0.0.0.0
+ARG DEBUG=false
+
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV WORKANA_EMAIL=$WORKANA_EMAIL
+ENV WORKANA_PASSWORD=$WORKANA_PASSWORD
+ENV PORT=$PORT
+ENV HOST=$HOST
+ENV DEBUG=$DEBUG
 
 # Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y \
@@ -81,6 +93,13 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 # Install Playwright browsers
 RUN playwright install chromium
+
+# Create .env file for backend
+RUN echo "WORKANA_EMAIL=$WORKANA_EMAIL" > .env && \
+    echo "WORKANA_PASSWORD=$WORKANA_PASSWORD" >> .env && \
+    echo "PORT=$PORT" >> .env && \
+    echo "HOST=$HOST" >> .env && \
+    echo "DEBUG=$DEBUG" >> .env
 
 # Copy application code
 COPY src/ ./src/
