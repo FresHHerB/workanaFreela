@@ -5,8 +5,16 @@ import type { ProjetoFreela } from '../types';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+console.log('Supabase Config Debug:', {
+  url: supabaseUrl ? 'SET' : 'MISSING',
+  key: supabaseAnonKey ? 'SET' : 'MISSING',
+  fullUrl: supabaseUrl
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(`Missing Supabase environment variables. URL: ${supabaseUrl ? 'SET' : 'MISSING'}, KEY: ${supabaseAnonKey ? 'SET' : 'MISSING'}`);
+  const errorMsg = `Missing Supabase environment variables. URL: ${supabaseUrl ? 'SET' : 'MISSING'}, KEY: ${supabaseAnonKey ? 'SET' : 'MISSING'}`;
+  console.error(errorMsg);
+  throw new Error(errorMsg);
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

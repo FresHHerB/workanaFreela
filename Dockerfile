@@ -27,6 +27,7 @@ RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
 
 # Copy frontend source code and config files
 COPY frontend/src/ ./src/
+COPY frontend/public/ ./public/
 COPY frontend/index.html ./
 COPY frontend/vite.config.ts ./
 COPY frontend/tsconfig.json ./
