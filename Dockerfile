@@ -20,6 +20,11 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
 
+# Create .env file for Vite build
+RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
+    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
+    echo "VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL" >> .env
+
 # Copy frontend source code explicitly (only files that exist)
 COPY frontend/src/ ./src/
 COPY frontend/index.html ./
@@ -29,6 +34,13 @@ COPY frontend/tsconfig.app.json ./
 COPY frontend/tsconfig.node.json ./
 COPY frontend/tailwind.config.js ./
 COPY frontend/postcss.config.js ./
+
+# Debug: Show what files we copied and environment variables
+RUN echo "=== DEBUG: Files in /app ===" && ls -la .
+RUN echo "=== DEBUG: Files in /app/src ===" && ls -la src/
+RUN echo "=== DEBUG: Files in /app/src/lib ===" && ls -la src/lib/
+RUN echo "=== DEBUG: Environment variables ===" && env | grep VITE_
+RUN echo "=== DEBUG: .env file content ===" && cat .env
 
 # Build frontend for production
 RUN npm run build
