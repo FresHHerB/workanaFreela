@@ -48,6 +48,9 @@ WORKANA_PASSWORD=sua_senha
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua_chave_anonima
 
+# Webhook integration (opcional)
+WEBHOOK_URL=https://seu-dominio.com/api/scrape
+
 # Servidor (opcional)
 PORT=8000
 ```
@@ -111,12 +114,17 @@ docker-compose up --build
    - URL: `https://github.com/FresHHerB/workanaFreela`
    - Branch: `main`
 
-2. **Configure apenas 4 variáveis no EasyPanel**:
+2. **Configure estas variáveis no EasyPanel**:
+
+   **Obrigatórias:**
    - `WORKANA_EMAIL=seu_email@workana.com`
    - `WORKANA_PASSWORD=sua_senha`
    - `VITE_SUPABASE_URL=https://seu-projeto.supabase.co`
    - `VITE_SUPABASE_ANON_KEY=sua_chave_anonima`
-   - `PORT=8000` (opcional, padrão é 8000)
+
+   **Opcionais:**
+   - `WEBHOOK_URL=https://seu-dominio.com/api/scrape` (para integração n8n)
+   - `PORT=8000` (padrão é 8000)
 
 3. **Configure os domínios**:
    - **Dashboard**: `sua-aplicacao.exemplo.com` (porta 8000)
@@ -132,15 +140,18 @@ docker-compose up --build
 
 A aplicação usa uma arquitetura simples e eficiente:
 
-1. **Backend FastAPI**: Realiza scraping da Workana e expõe API REST
+1. **Backend FastAPI**: Realiza scraping da Workana e salva no Supabase
 2. **Frontend React**: Dashboard para visualização dos dados do Supabase
-3. **Separação clara**: Backend não acessa Supabase, Frontend não faz scraping
-4. **Fluxo**: Backend scrapes → API response → Frontend lê do Supabase
+3. **Webhook/n8n**: Dispara o scraping via chamada para /api/scrape
+4. **Fluxo**: Webhook → Backend scrapes → Salva no Supabase → Frontend lê
 
 ### Fluxo de Dados
 ```
-Workana → Backend (scraping) → API /scrape → Resposta JSON
-Supabase ← Frontend (leitura) ← Dashboard React
+n8n/Webhook → /api/scrape → Backend scraping → Salva no Supabase
+                                ↓
+                           Resposta JSON
+                                ↓
+Frontend Dashboard ← Lê do Supabase ← Dados atualizados
 ```
 
 ## Monitoramento
