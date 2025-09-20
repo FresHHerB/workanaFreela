@@ -35,13 +35,6 @@ COPY frontend/tsconfig.node.json ./
 COPY frontend/tailwind.config.js ./
 COPY frontend/postcss.config.js ./
 
-# Debug: Show what files we copied and environment variables
-RUN echo "=== DEBUG: Files in /app ===" && ls -la .
-RUN echo "=== DEBUG: Files in /app/src ===" && ls -la src/
-RUN echo "=== DEBUG: Files in /app/src/lib ===" && ls -la src/lib/
-RUN echo "=== DEBUG: Environment variables ===" && env | grep VITE_
-RUN echo "=== DEBUG: .env file content ===" && cat .env
-
 # Build frontend for production
 RUN npm run build
 
