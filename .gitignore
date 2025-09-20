@@ -38,13 +38,6 @@ frontend/build/
 .env.test.local
 .env.production.local
 
-# Frontend environment files
-frontend/.env
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-
 # IDEs
 .vscode/
 .idea/

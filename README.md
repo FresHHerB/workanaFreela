@@ -37,19 +37,23 @@ workanaFreela/
 
 ### Variáveis de Ambiente
 
-Copie o arquivo `.env` e configure:
+Copie o arquivo `.env.example` para `.env` e configure:
 
 ```env
-# Credenciais Workana
+# Credenciais Workana (obrigatório)
 WORKANA_EMAIL=seu_email@exemplo.com
 WORKANA_PASSWORD=sua_senha
 
-# Configuração Supabase
+# Configuração Supabase (obrigatório)
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_ANON_KEY=sua_chave_anonima
 
-# Webhook (opcional)
-WEBHOOK_URL=https://seu-webhook.com/endpoint
+# Frontend (obrigatório - mesmos valores acima)
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima
+
+# Servidor (opcional)
+PORT=8000
 ```
 
 ## Desenvolvimento Local
@@ -112,11 +116,13 @@ docker-compose up --build
    - Branch: `main`
 
 2. **Configure as variáveis de ambiente no EasyPanel**:
-   - `WORKANA_EMAIL`
-   - `WORKANA_PASSWORD`
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `PORT=8000`
+   - `WORKANA_EMAIL=seu_email@workana.com`
+   - `WORKANA_PASSWORD=sua_senha`
+   - `SUPABASE_URL=https://seu-projeto.supabase.co`
+   - `SUPABASE_ANON_KEY=sua_chave_anonima`
+   - `VITE_SUPABASE_URL=https://seu-projeto.supabase.co` (mesmo valor acima)
+   - `VITE_SUPABASE_ANON_KEY=sua_chave_anonima` (mesmo valor acima)
+   - `PORT=8000` (opcional)
 
 3. **Configure os domínios**:
    - **Dashboard**: `sua-aplicacao.exemplo.com` (porta 8000)

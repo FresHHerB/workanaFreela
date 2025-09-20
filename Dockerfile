@@ -1,6 +1,14 @@
 # Multi-stage build for production deployment
 FROM node:18-alpine AS frontend-builder
 
+# Accept build arguments from EasyPanel
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+
+# Set environment variables for Vite build
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+
 # Set working directory for frontend build
 WORKDIR /app/frontend
 
